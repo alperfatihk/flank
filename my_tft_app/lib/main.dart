@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+// Kendi projenizin adına göre aşağıdaki import satırlarını düzenleyin
+import 'package:my_tft_app/theme_notifier.dart';
+import 'package:my_tft_app/language_notifier.dart'
 void main() {
   runApp(const MyApp());
 }
@@ -72,57 +75,77 @@ class TFTChampionsPage extends StatefulWidget {
 
 class _TFTChampionsPageState extends State<TFTChampionsPage> {
   // Örnek şampiyon verileri
-  final List<Champion> _champions = [
+  final List<Champion> _allChampions = [ // Tüm şampiyonları tutan liste
     Champion(
       name: 'Alistair',
-      imageUrl: 'assets/images/alistair.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/alistair.jpg',
       traits: ['Golden Ox', 'Bruiser'],
       cost: 1,
     ),
     Champion(
       name: 'Annie',
-      imageUrl: 'assets/images/annie.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/annie.jpg',
       traits: ['Golden Ox', 'A.M.P.'],
       cost: 1,
     ),
     Champion(
       name: 'Aphelios',
-      imageUrl: 'assets/images/aphelios.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/aphelios.jpg',
       traits: ['Golden Ox', 'Marksman'],
       cost: 4,
     ),
     Champion(
       name: 'Aurora',
-      imageUrl: 'assets/images/aurora.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/aurora.jpg',
       traits: ['Astromancer Squad', 'Dynamo'],
       cost: 5,
     ),
     Champion(
       name: 'Teemo',
-      imageUrl: 'assets/images/teemo.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/teemo.jpg',
       traits: ['Street Demon', 'Vanguard'],
       cost: 3,
     ),
     Champion(
       name: 'Silas',
-      imageUrl: 'assets/images/silas.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/silas.jpg',
       traits: ['Syndicate', 'Brawler'],
       cost: 2,
     ),
     Champion(
       name: 'Lux',
-      imageUrl: 'assets/images/lux.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/lux.jpg',
       traits: ['BoomBots', 'Bruiser'],
       cost: 3,
     ),
     Champion(
       name: 'Ekko',
-      imageUrl: 'assets/images/ekko.jpg', // Kendi resminizi koyun
+      imageUrl: 'assets/images/ekko.jpg',
       traits: ['Syndicate', 'Infiltrator'],
       cost: 4,
     ),
     // Daha fazla şampiyon ekleyebilirsiniz
   ];
+
+  List<Champion> _filteredChampions = []; // Filtrelenmiş şampiyonları tutan liste
+  int? _selectedCost; // Seçilen maliyet (null ise tümünü göster)
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredChampions = _allChampions; // Başlangıçta tüm şampiyonları göster
+  }
+
+  void _filterChampionsByCost(int? cost) {
+    setState(() {
+      _selectedCost = cost;
+      if (cost == null) {
+        _filteredChampions = _allChampions; // Tümünü göster
+      } else {
+        _filteredChampions = _allChampions.where((champion) => champion.cost == cost).toList();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,6 +183,14 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
             ListTile(
               leading: Icon(Icons.settings, color: Colors.white70),
               title: Text('Ayarlar', style: TextStyle(color: Colors.white)),
+              // TODO: Ayarlar sayfasına geçişi burada etkinleştirebilirsiniz
+              // onPressed: () {
+              //   Navigator.pop(context); // Drawer'ı kapat
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(builder: (context) => const SettingsPage()), // SettingsPage'i oluşturmanız gerekir
+              //   );
+              // },
             ),
             SizedBox(height: 20),
           ],
@@ -171,10 +202,15 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
           automaticallyImplyLeading: false, // Varsayılan geri butonunu kaldırır
           title: Row(
             children: [
-              IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white), // Drawer'ı açmak için menü ikonu
-                onPressed: () {
-                  Scaffold.of(context).openDrawer(); // Drawer'ı açar
+              Builder(
+                // Builder widget'ı ekleyerek Scaffold context'ine erişim sağla
+                builder: (BuildContext context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu, color: Colors.white),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer(); // Drawer'ı açar
+                    },
+                  );
                 },
               ),
               const SizedBox(width: 8),
@@ -208,7 +244,7 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
                         color: const Color(0xFF2C2B4B),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
-                      child: TextField(
+                      child: const TextField(
                         decoration: InputDecoration(
                           hintText: 'Game Name #Tag',
                           hintStyle: TextStyle(color: Colors.white54, fontSize: 14),
@@ -230,9 +266,9 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  Icon(Icons.history, color: Colors.white70),
+                  const Icon(Icons.history, color: Colors.white70),
                   const SizedBox(width: 10),
-                  Icon(Icons.login, color: Colors.white70),
+                  const Icon(Icons.login, color: Colors.white70),
                 ],
               ),
             ),
@@ -341,26 +377,29 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
                         ),
                       ),
                       const SizedBox(width: 10),
-                      // Sayfalama butonları
+                      // Sayfalama/Maliyet filtreleme butonları
                       Row(
                         children: List.generate(5, (index) {
+                          int cost = index + 1;
+                          bool isSelected = _selectedCost == cost;
+
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),
                             child: Material(
-                              color: index == 0 ? Theme.of(context).primaryColor : const Color(0xFF2C2B4B), // Seçili sayfa rengi
+                              color: isSelected ? Theme.of(context).primaryColor : const Color(0xFF2C2B4B),
                               borderRadius: BorderRadius.circular(8.0),
                               child: InkWell(
                                 onTap: () {
-                                  // Sayfa değiştirme işlevi
+                                  _filterChampionsByCost(isSelected ? null : cost); // Seçiliyse tümünü göster, değilse seçili maliyetle filtrele
                                 },
                                 borderRadius: BorderRadius.circular(8.0),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   child: Text(
-                                    '${index + 1}',
+                                    '$cost', // Maliyet numarasını göster
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontWeight: index == 0 ? FontWeight.bold : FontWeight.normal,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                     ),
                                   ),
                                 ),
@@ -368,6 +407,28 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
                             ),
                           );
                         }),
+                      ),
+                      const SizedBox(width: 10),
+                      // "All" butonu (tüm maliyetleri göstermek için)
+                      Material(
+                        color: _selectedCost == null ? Theme.of(context).primaryColor : const Color(0xFF2C2B4B),
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: InkWell(
+                          onTap: () {
+                            _filterChampionsByCost(null); // Tüm maliyetleri göster
+                          },
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Text(
+                              'All',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: _selectedCost == null ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -388,10 +449,10 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  final champion = _champions[index];
+                  final champion = _filteredChampions[index]; // Filtrelenmiş listeyi kullan
                   return _buildChampionCard(champion);
                 },
-                childCount: _champions.length,
+                childCount: _filteredChampions.length, // Filtrelenmiş liste sayısını kullan
               ),
             ),
           ),
@@ -422,7 +483,7 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Remove all ads', style: Theme.of(context).textTheme.titleMedium),
-                            Icon(Icons.close, color: Colors.white54),
+                            const Icon(Icons.close, color: Colors.white54),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -504,6 +565,7 @@ class _TFTChampionsPageState extends State<TFTChampionsPage> {
               child: Image.asset(
                 champion.imageUrl,
                 fit: BoxFit.cover,
+                // Resim bulunamazsa veya yüklenmezse gösterilecek yer tutucu
                 errorBuilder: (context, error, stackTrace) =>
                     Container(color: Colors.grey[700], child: const Icon(Icons.broken_image, color: Colors.white54)),
               ),
